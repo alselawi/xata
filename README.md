@@ -15,7 +15,6 @@ Unofficial Dart client for Xata serverless database. it uses the REST API provid
 ## Implementation
 - [x] Users
 - [x] Authentication (keys)
-- [ ] OAuth
 - [-] Workspaces
     - [x] List workspaces
     - [x] Get single workspace
@@ -26,8 +25,6 @@ Unofficial Dart client for Xata serverless database. it uses the REST API provid
     - [ ] Update workspace settings
     - [ ] Get workspace members/invitees
     - [ ] Update workspace members/invitees
-- [ ] Invites management
-- [ ] Tasks
 - [x] Databases
 - [-] Branches
     - [x] List branches
@@ -42,14 +39,18 @@ Unofficial Dart client for Xata serverless database. it uses the REST API provid
     - [ ] Branch stats (usage metrics)
     - [ ] Branch-git mapping
 - [x] Database settings
-- [ ] Migrations
 - [x] Table (work in progress)
 - [x] Records (work in progress)
 - [x] Files (work in progress)
 - [x] Search, Filter, and AI (work in progress)
 - [x] SQL queries (work in progress)
 
-
+## Unimplemented
+Here's a list of features that are not yet implemented, in the order of priority:
+- [ ] Migrations
+- [ ] Invites management
+- [ ] Tasks
+- [ ] OAuth
 
 
 Currently working on: Databases
