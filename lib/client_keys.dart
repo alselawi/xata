@@ -4,9 +4,9 @@ import 'package:http/http.dart' as http;
 class XataKey {
   String name;
   DateTime createdAt;
-  XataKey.fromMap(Map<String, String> json)
-      : name = json['name'] ?? "",
-        createdAt = DateTime.parse(json['createdAt'] ?? "");
+  XataKey.fromMap(Map<String, dynamic> map)
+      : name = map['name'] ?? "",
+        createdAt = DateTime.parse(map['createdAt'] ?? "");
 }
 
 class Keys extends XataSubClient {
@@ -16,7 +16,7 @@ class Keys extends XataSubClient {
   Future<List<XataKey>> list() async {
     http.Response response = await http.get(Uri.parse("$topLevelURL/user/keys"), headers: {...authHeader(config.key)});
     statusCodeCheck(response);
-    return (decode(response.body) as List).map((e) => XataKey.fromMap(e)).toList();
+    return List.from(resMap(response.body)["keys"]).map((e) => XataKey.fromMap(e)).toList();
   }
 
   /// Create a new API key for the current user.
@@ -25,7 +25,7 @@ class Keys extends XataSubClient {
     http.Response response =
         await http.post(Uri.parse("$topLevelURL/user/keys/$name"), headers: {...authHeader(config.key)});
     statusCodeCheck(response);
-    return decode(response.body)['key'];
+    return resMap(response.body)['key'];
   }
 
   /// Delete an API key for the current user

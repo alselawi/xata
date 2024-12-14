@@ -1,5 +1,7 @@
 # Xata-Dart Client
 
+## Abandoned & incomplete - DO NOT USE!
+
 Unofficial Dart client for Xata serverless database. it uses the REST API provided by Xata.
 
 ## Benefits
@@ -7,9 +9,31 @@ Unofficial Dart client for Xata serverless database. it uses the REST API provid
 2. Ease-of-use
 
 
+## Installation
+
+## Usage
+
+Sample code:
+
 ```dart
-// sample code
+import 'package:xata_dart/xata.dart';
+
+void main() async {
+    final xata = Xata(key: 'YOUR_API_KEY');
+}
 ```
+
+### User
+### Keys
+### Workspaces
+### Databases
+### Branches
+### Tables
+### Columns
+### Records
+### Files
+### Search, Filter, and AI
+### SQL queries
 
 
 ## Implementation
@@ -39,11 +63,12 @@ Unofficial Dart client for Xata serverless database. it uses the REST API provid
     - [ ] Branch stats (usage metrics)
     - [ ] Branch-git mapping
 - [x] Database settings
-- [x] Table (work in progress)
-- [x] Records (work in progress)
-- [x] Files (work in progress)
-- [x] Search, Filter, and AI (work in progress)
-- [x] SQL queries (work in progress)
+- [x] Table
+- [x] Column
+- [x] Records
+- [x] Files
+- [x] Search, Filter, and AI
+- [x] SQL queries
 
 ## Unimplemented
 Here's a list of features that are not yet implemented, in the order of priority:
@@ -51,6 +76,3 @@ Here's a list of features that are not yet implemented, in the order of priority
 - [ ] Invites management
 - [ ] Tasks
 - [ ] OAuth
-
-
-Currently working on: Databases

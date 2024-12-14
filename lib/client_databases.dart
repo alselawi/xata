@@ -1,9 +1,11 @@
+import 'dart:convert';
+
 import 'package:xata_dart/common.dart';
 import 'package:http/http.dart' as http;
 
 class XataDatabaseUI {
   String color;
-  XataDatabaseUI.fromMap(Map<String, dynamic>? json) : color = json == null ? "" : json['color'] ?? "";
+  XataDatabaseUI.fromMap(Map<String, dynamic>? map) : color = map == null ? "" : map['color'] ?? "";
 }
 
 class XataDatabase {
@@ -13,36 +15,37 @@ class XataDatabase {
   String defaultClusterID;
   bool postgresEnabled;
   XataDatabaseUI ui;
-  XataDatabase.fromMap(Map<String, dynamic> json)
-      : name = json['name'] ?? "",
-        region = json['region'] ?? "",
-        createdAt = DateTime.parse(json['createdAt'] ?? ""),
-        defaultClusterID = json['defaultClusterID'] ?? "",
-        postgresEnabled = json['postgresEnabled'] ?? false,
-        ui = XataDatabaseUI.fromMap(json['ui']);
+  XataDatabase.fromMap(Map<String, dynamic> map)
+      : name = map['name'] ?? "",
+        region = map['region'] ?? "",
+        createdAt = DateTime.parse(map['createdAt'] ?? ""),
+        defaultClusterID = map['defaultClusterID'] ?? "",
+        postgresEnabled = map['postgresEnabled'] ?? false,
+        ui = XataDatabaseUI.fromMap(map['ui']);
 }
 
 class XataRegion {
   String name;
   String id;
-  XataRegion.fromMap(Map<String, dynamic> json)
-      : name = json['name'] ?? "",
-        id = json['id'] ?? "";
+  XataRegion.fromMap(Map<String, dynamic> map)
+      : name = map['name'] ?? "",
+        id = map['id'] ?? "";
 }
 
 class XataCreatedDatabase {
   String databaseName;
   String branchName;
   String status;
-  XataCreatedDatabase.fromMap(Map<String, dynamic> json)
-      : databaseName = json['databaseName'] ?? "",
-        branchName = json['branchName'] ?? "",
-        status = json['status'] ?? "";
+  XataCreatedDatabase.fromMap(Map<String, dynamic> map)
+      : databaseName = map['databaseName'] ?? "",
+        branchName = map['branchName'] ?? "",
+        status = map['status'] ?? "";
 }
 
 class XataDatabaseSettings {
   bool searchEnabled;
-  XataDatabaseSettings.fromMap(Map<String, dynamic> json) : searchEnabled = json['searchEnabled'] ?? false;
+  XataDatabaseSettings({required this.searchEnabled});
+  XataDatabaseSettings.fromMap(Map<String, dynamic> map) : searchEnabled = map['searchEnabled'] ?? false;
   Map<String, dynamic> toMap() => {"searchEnabled": searchEnabled};
 }
 
@@ -58,7 +61,7 @@ class Databases extends XataSubClient {
     http.Response response = await http
         .get(Uri.parse("$topLevelURL/workspaces/${config.workspace}/dbs"), headers: {...authHeader(config.key)});
     statusCodeCheck(response);
-    return List<Map<String, dynamic>>.from(decode(response.body)["databases"])
+    return List<Map<String, dynamic>>.from(resMap(response.body)["databases"])
         .map((e) => XataDatabase.fromMap(e))
         .toList();
   }
@@ -68,7 +71,7 @@ class Databases extends XataSubClient {
     http.Response response = await http.get(Uri.parse("$topLevelURL/workspaces/${config.workspace}/dbs/$dbName"),
         headers: {...authHeader(config.key)});
     statusCodeCheck(response);
-    return XataDatabase.fromMap(decode(response.body));
+    return XataDatabase.fromMap(resMap(response.body));
   }
 
   /// List available regions that you can create a database in
@@ -76,7 +79,7 @@ class Databases extends XataSubClient {
     http.Response response = await http
         .get(Uri.parse("$topLevelURL/workspaces/${config.workspace}/regions"), headers: {...authHeader(config.key)});
     statusCodeCheck(response);
-    return List<Map<String, dynamic>>.from(decode(response.body)["regions"]).map((e) => XataRegion.fromMap(e)).toList();
+    return List<Map<String, dynamic>>.from(resMap(response.body)["regions"]).map((e) => XataRegion.fromMap(e)).toList();
   }
 
   /// create new database in the workspace
@@ -85,14 +88,13 @@ class Databases extends XataSubClient {
       throw Exception("Region must be set before creating a database");
     }
 
-    http.Response response =
-        await http.put(Uri.parse("$topLevelURL/workspaces/${config.workspace}/dbs/$name"), headers: {
-      ...authHeader(config.key)
-    }, body: {
-      "region": config.region,
-    });
+    http.Response response = await http.put(Uri.parse("$topLevelURL/workspaces/${config.workspace}/dbs/$name"),
+        headers: {...authHeader(config.key)},
+        body: jsonEncode({
+          "region": config.region,
+        }));
     statusCodeCheck(response);
-    return XataCreatedDatabase.fromMap(decode(response.body));
+    return XataCreatedDatabase.fromMap(resMap(response.body));
   }
 
   /// Delete a database in the workspace
@@ -105,29 +107,29 @@ class Databases extends XataSubClient {
   /// rename database
   Future<XataDatabase> rename(String dbName, String newName) async {
     http.Response response =
-        await http.post(Uri.parse("$topLevelURL/workspaces/${config.workspace}/dbs/$dbName/rename"), headers: {
-      ...authHeader(config.key)
-    }, body: {
-      "name": newName,
-    });
+        await http.post(Uri.parse("$topLevelURL/workspaces/${config.workspace}/dbs/$dbName/rename"),
+            headers: {...authHeader(config.key)},
+            body: jsonEncode({
+              "newName": newName,
+            }));
     statusCodeCheck(response);
-    return XataDatabase.fromMap(decode(response.body));
+    return XataDatabase.fromMap(resMap(response.body));
   }
 
   /// get database settings
   Future<XataDatabaseSettings> getSettings(String dbName) async {
     config.database = dbName;
-    http.Response response = await http.get(Uri.parse(dbURL), headers: {...authHeader(config.key)});
+    http.Response response = await http.get(Uri.parse("$dbURL/settings"), headers: {...authHeader(config.key)});
     statusCodeCheck(response);
-    return XataDatabaseSettings.fromMap(decode(response.body));
+    return XataDatabaseSettings.fromMap(resMap(response.body));
   }
 
   /// update database settings
   Future<XataDatabaseSettings> updateSettings(String dbName, XataDatabaseSettings settings) async {
     config.database = dbName;
-    http.Response response =
-        await http.patch(Uri.parse(dbURL), headers: {...authHeader(config.key)}, body: settings.toMap());
+    http.Response response = await http.patch(Uri.parse("$dbURL/settings"),
+        headers: {...authHeader(config.key)}, body: jsonEncode(settings.toMap()));
     statusCodeCheck(response);
-    return XataDatabaseSettings.fromMap(decode(response.body));
+    return XataDatabaseSettings.fromMap(resMap(response.body));
   }
 }

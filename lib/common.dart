@@ -1,7 +1,40 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-class RequestConfiguration {
+class XataAutoData {
+  int version;
+  DateTime createdAt;
+  DateTime updatedAt;
+  XataAutoData.fromMap(Map<String, dynamic> map)
+      : version = map['version'] ?? 0,
+        createdAt = DateTime.parse(map['createdAt'] ?? ""),
+        updatedAt = DateTime.parse(map['updatedAt'] ?? "");
+  Map<String, dynamic> toMap() {
+    return {
+      "version": version,
+      "createdAt": createdAt.toIso8601String(),
+      "updatedAt": updatedAt.toIso8601String(),
+    };
+  }
+}
+
+abstract class XataRecord {
+  String id;
+  XataAutoData xata;
+  XataRecord.fromMap(Map<String, dynamic> map)
+      : id = map['id'] ?? "",
+        xata = XataAutoData.fromMap(map['xata'] ?? {});
+  Map<String, dynamic> toMap() {
+    return {
+      "id": id,
+      "xata": xata.toMap(),
+    };
+  }
+}
+
+typedef Model<R extends XataRecord> = R Function(Map<String, dynamic> map);
+
+class RequestConfiguration<R extends XataRecord> {
   String? key;
   String? region;
   String? workspace;
@@ -11,6 +44,7 @@ class RequestConfiguration {
   String? column;
   String? record;
   String? file;
+  Model<R>? model;
   RequestConfiguration({
     this.key,
     this.region,
@@ -21,6 +55,7 @@ class RequestConfiguration {
     this.column,
     this.record,
     this.file,
+    this.model,
   });
 }
 
@@ -37,7 +72,7 @@ abstract class XataSubClient {
     if (config.database == null) {
       throw Exception("Database must be set before accessing database");
     }
-    return "https://${config.workspace}.${config.region}.xata.sh/dbs/${config.database}/";
+    return "https://${config.workspace}.${config.region}.xata.sh/dbs/${config.database}";
   }
 
   String get branchURL {
@@ -53,23 +88,23 @@ abstract class XataSubClient {
     if (config.branch == null) {
       throw Exception("Branch must be set before accessing database and branch");
     }
-    return "https://${config.workspace}.${config.region}.xata.sh/db/${config.database}:${config.branch}/";
+    return "https://${config.workspace}.${config.region}.xata.sh/db/${config.database}:${config.branch}";
   }
 
   XataSubClient(this.config);
 }
 
-successStatusCode(int statusCode) {
+bool successStatusCode(int statusCode) {
   return statusCode >= 200 && statusCode < 300;
 }
 
-statusCodeCheck(http.Response response) {
-  if (successStatusCode(response.statusCode)) {
-    throw Exception("Xata API error: ${response.statusCode}: ${response.body}");
+void statusCodeCheck(http.Response response) {
+  if (!successStatusCode(response.statusCode)) {
+    throw Exception("Xata API error: ${response.statusCode}: ${response.reasonPhrase} : ${response.body}");
   }
 }
 
-Map<String, dynamic> decode(String input) {
+Map<String, dynamic> resMap(String input) {
   try {
     return jsonDecode(input);
   } catch (e) {
@@ -77,9 +112,9 @@ Map<String, dynamic> decode(String input) {
   }
 }
 
-authHeader(String? key) {
+Map<String, String> authHeader(String? key) {
   if (key == null) {
     throw Exception("Xata API key not set");
   }
-  return {'Authorization': 'Bearer $key'};
+  return {'Authorization': 'Bearer $key', "content-type": "application/json"};
 }

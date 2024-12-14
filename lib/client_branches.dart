@@ -1,6 +1,7 @@
 // ignore_for_file: use_super_parameters
 
 import 'dart:convert';
+import 'package:xata_dart/column_schema.dart';
 import 'package:xata_dart/common.dart';
 import 'package:http/http.dart' as http;
 
@@ -11,9 +12,9 @@ class _XataBranchBase {
   bool get isMoving => state == "moving";
   bool get moveScheduled => state == "move_scheduled";
 
-  _XataBranchBase.fromMap(Map<String, dynamic> json)
-      : createdAt = DateTime.parse(json['createdAt'] ?? ""),
-        state = json['state'] ?? "";
+  _XataBranchBase.fromMap(Map<String, dynamic> map)
+      : createdAt = DateTime.parse(map['createdAt'] ?? ""),
+        state = map['state'] ?? "";
 }
 
 class XataBranch extends _XataBranchBase {
@@ -22,82 +23,20 @@ class XataBranch extends _XataBranchBase {
   bool searchDisabled;
   bool inactiveSharedCluster;
 
-  XataBranch.fromMap(Map<String, dynamic> json)
-      : name = json['name'] ?? "",
-        clusterID = json['clusterID'] ?? "",
-        searchDisabled = json['searchDisabled'] ?? false,
-        inactiveSharedCluster = json['inactiveSharedCluster'] ?? false,
-        super.fromMap(json);
-}
-
-enum XataColumnType {
-  bool("bool"),
-  int("int"),
-  float("float"),
-  string("string"),
-  text("text"),
-  email("email"),
-  multiple("multiple"),
-  link("link"),
-  object("object"),
-  datetime("datetime"),
-  vector("vector"),
-  fileArr("file[]"),
-  file("file"),
-  json("json");
-
-  final String type;
-  const XataColumnType(this.type);
+  XataBranch.fromMap(Map<String, dynamic> map)
+      : name = map['name'] ?? "",
+        clusterID = map['clusterID'] ?? "",
+        searchDisabled = map['searchDisabled'] ?? false,
+        inactiveSharedCluster = map['inactiveSharedCluster'] ?? false,
+        super.fromMap(map);
 }
 
 class XataRevLink {
   String table;
   String column;
-  XataRevLink.fromMap(Map<String, dynamic> json)
-      : table = json['table'] ?? "",
-        column = json['column'] ?? "";
-}
-
-class XataColumnLink {
-  String table;
-  XataColumnLink.fromMap(Map<String, dynamic> json) : table = json['table'] ?? "";
-}
-
-class XataColumnVector {
-  double dimension;
-  XataColumnVector.fromMap(Map<String, dynamic> json) : dimension = double.parse(json['dimension'] ?? 0);
-}
-
-class XataColumnFile {
-  bool defaultPublicAccess;
-  XataColumnFile.fromMap(Map<String, dynamic> json) : defaultPublicAccess = json['defaultPublicAccess'] ?? false;
-}
-
-class XataColumn {
-  String name;
-  XataColumnType type;
-  XataColumnLink? link;
-  XataColumnVector? vector;
-  XataColumnFile? file;
-  XataColumnFile? fileArr;
-  bool? notNull;
-  String? defaultValue;
-  bool? unique;
-  List<XataColumn>? columns;
-
-  XataColumn.fromMap(Map<String, dynamic> json)
-      : name = json['name'] ?? "",
-        type = XataColumnType.values
-            .firstWhere((element) => element.type == (json['type'] ?? ""), orElse: () => XataColumnType.string),
-        link = json['link'] != null ? XataColumnLink.fromMap(json['link']) : null,
-        vector = json['vector'] != null ? XataColumnVector.fromMap(json['vector']) : null,
-        file = json['file'] != null ? XataColumnFile.fromMap(json['file']) : null,
-        fileArr = json['fileArr'] != null ? XataColumnFile.fromMap(json['fileArr']) : null,
-        notNull = json['notNull'] ?? false,
-        defaultValue = json['defaultValue'] ?? "",
-        unique = json['unique'] ?? false,
-        columns =
-            json['columns'] != null ? List<XataColumn>.from(json['columns'].map((e) => XataColumn.fromMap(e))) : null;
+  XataRevLink.fromMap(Map<String, dynamic> map)
+      : table = map['table'] ?? "",
+        column = map['column'] ?? "";
 }
 
 class XataTable {
@@ -106,29 +45,29 @@ class XataTable {
   List<XataColumn> columns;
   List<XataRevLink> revLinks;
 
-  XataTable.fromMap(Map<String, dynamic> json)
-      : id = json['id'] ?? "",
-        name = json['name'] ?? "",
-        columns = List<XataColumn>.from(json['columns'].map((e) => XataColumn.fromMap(e))),
-        revLinks = List<XataRevLink>.from(json['revLinks'].map((e) => XataRevLink.fromMap(e)));
+  XataTable.fromMap(Map<String, dynamic> map)
+      : id = map['id'] ?? "",
+        name = map['name'] ?? "",
+        columns = List<XataColumn>.from(map['columns'].map((e) => XataColumn.fromMap(e))),
+        revLinks = List<XataRevLink>.from(map['revLinks'].map((e) => XataRevLink.fromMap(e)));
 }
 
 class XataDatabaseSchema {
   List<XataTable> tables;
   List<String>? tablesOrder;
-  XataDatabaseSchema.fromMap(Map<String, dynamic> json)
-      : tables = List<XataTable>.from(json['tables'].map((e) => XataTable.fromMap(e))),
-        tablesOrder = json['tablesOrder'] != null ? List<String>.from(json['tablesOrder']) : null;
+  XataDatabaseSchema.fromMap(Map<String, dynamic> map)
+      : tables = List<XataTable>.from(map['tables'].map((e) => XataTable.fromMap(e))),
+        tablesOrder = map['tablesOrder'] != null ? List<String>.from(map['tablesOrder']) : null;
 }
 
 class XataStartMetadata {
   String branchName;
   String dbBranchID;
   String migrationID;
-  XataStartMetadata.fromMap(Map<String, dynamic> json)
-      : branchName = json['branchName'] ?? "",
-        dbBranchID = json['dbBranchID'] ?? "",
-        migrationID = json['migrationID'] ?? "";
+  XataStartMetadata.fromMap(Map<String, dynamic> map)
+      : branchName = map['branchName'] ?? "",
+        dbBranchID = map['dbBranchID'] ?? "",
+        migrationID = map['migrationID'] ?? "";
 }
 
 class XataSingleDbBranch {
@@ -141,16 +80,16 @@ class XataSingleDbBranch {
   XataBranchMetadata? metadata;
   XataDatabaseSchema schema;
   XataStartMetadata? startedFrom;
-  XataSingleDbBranch.fromMap(Map<String, dynamic> json)
-      : databaseName = json['databaseName'] ?? "",
-        branchName = json['branchName'] ?? "",
-        id = json['id'] ?? "",
-        clusterID = json['clusterID'] ?? "",
-        lastMigrationID = json['lastMigrationID'] ?? "",
-        version = json['version'] ?? 0,
-        startedFrom = json['startedFrom'] != null ? XataStartMetadata.fromMap(json['startedFrom']) : null,
-        metadata = json['metadata'] != null ? XataBranchMetadata.fromMap(json['metadata']) : null,
-        schema = XataDatabaseSchema.fromMap(json['schema']);
+  XataSingleDbBranch.fromMap(Map<String, dynamic> map)
+      : databaseName = map['databaseName'] ?? "",
+        branchName = map['branchName'] ?? "",
+        id = map['id'] ?? "",
+        clusterID = map['clusterID'] ?? "",
+        lastMigrationID = map['lastMigrationID'] ?? "",
+        version = map['version'] ?? 0,
+        startedFrom = map['startedFrom'] != null ? XataStartMetadata.fromMap(map['startedFrom']) : null,
+        metadata = map['metadata'] != null ? XataBranchMetadata.fromMap(map['metadata']) : null,
+        schema = XataDatabaseSchema.fromMap(map['schema']);
 }
 
 class XataBranchMetadata {
@@ -159,11 +98,18 @@ class XataBranchMetadata {
   String stage;
   List<String> labels;
 
-  XataBranchMetadata.fromMap(Map<String, dynamic> json)
-      : repository = json['repository'] ?? "",
-        branch = json['branch'] ?? "",
-        stage = json['stage'] ?? "",
-        labels = List<String>.from(json['labels'] ?? []);
+  XataBranchMetadata({
+    required this.branch,
+    this.repository = "",
+    this.stage = "",
+    this.labels = const [],
+  });
+
+  XataBranchMetadata.fromMap(Map<String, dynamic> map)
+      : repository = map['repository'] ?? "",
+        branch = map['branch'] ?? "",
+        stage = map['stage'] ?? "",
+        labels = List<String>.from(map['labels'] ?? []);
 
   Map<String, dynamic> toMap() => ({
         "repository": repository,
@@ -190,13 +136,13 @@ class Branches extends XataSubClient {
   Future<List<XataBranch>> list() async {
     http.Response response = await http.get(Uri.parse(dbURL), headers: {...authHeader(config.key)});
     statusCodeCheck(response);
-    return List<Map<String, dynamic>>.from(decode(response.body)["branches"])
+    return List<Map<String, dynamic>>.from(resMap(response.body)["branches"])
         .map((e) => XataBranch.fromMap(Map<String, dynamic>.from(e)))
         .toList();
   }
 
   /// Create a new branch in the current database
-  Future<String> create(String name, String? forkFrom, XataBranchMetadata? metadata) async {
+  Future<String> create(String name, [String? forkFrom, XataBranchMetadata? metadata]) async {
     config.branch = name;
     http.Response response = await http.put(Uri.parse("$branchURL/async"),
         headers: {...authHeader(config.key)},
@@ -205,11 +151,11 @@ class Branches extends XataSubClient {
           if (metadata != null) "metadata": metadata.toMap(),
         }));
     statusCodeCheck(response);
-    return decode(response.body)['taskID'];
+    return resMap(response.body)['taskID'];
   }
 
   /// Synchronously create a new branch in the current database
-  Future<String> createSync(String name, String? forkFrom, XataBranchMetadata? metadata) async {
+  Future<String> createSync(String name, [String? forkFrom, XataBranchMetadata? metadata]) async {
     config.branch = name;
     http.Response response = await http.put(Uri.parse(branchURL),
         headers: {...authHeader(config.key)},
@@ -218,7 +164,7 @@ class Branches extends XataSubClient {
           if (metadata != null) "metadata": metadata.toMap(),
         }));
     statusCodeCheck(response);
-    return decode(response.body)['branchName'];
+    return resMap(response.body)['branchName'];
   }
 
   /// Get a branch in the current database
@@ -226,7 +172,7 @@ class Branches extends XataSubClient {
     config.branch = name;
     http.Response response = await http.get(Uri.parse(branchURL), headers: {...authHeader(config.key)});
     statusCodeCheck(response);
-    return XataSingleDbBranch.fromMap(decode(response.body));
+    return XataSingleDbBranch.fromMap(resMap(response.body));
   }
 
   /// Delete a branch in the current database
@@ -240,7 +186,7 @@ class Branches extends XataSubClient {
   Future<void> updateMetadata(XataBranchMetadata metadata) async {
     config.branch = metadata.branch;
     http.Response response = await http.put(Uri.parse("$branchURL/metadata"),
-        headers: {...authHeader(config.key)}, body: jsonEncode({"metadata": metadata.toMap()}));
+        headers: {...authHeader(config.key)}, body: jsonEncode(metadata.toMap()));
     statusCodeCheck(response);
     return;
   }
@@ -250,6 +196,6 @@ class Branches extends XataSubClient {
     config.branch = name;
     http.Response response = await http.get(Uri.parse("$branchURL/metadata"), headers: {...authHeader(config.key)});
     statusCodeCheck(response);
-    return XataBranchMetadata.fromMap(decode(response.body));
+    return XataBranchMetadata.fromMap(resMap(response.body));
   }
 }
